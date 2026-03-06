@@ -1,0 +1,2890 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aquabeat | Relatório de Performance — Dez/25 a Fev/26</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --primary: #0d47a1;
+    --accent: #0097a7;
+    --accent2: #00bfa5;
+    --danger: #d32f2f;
+    --text: #212121;
+    --muted: #757575;
+    --border: #e0e0e0;
+    --shadow: 0 2px 12px rgba(0,0,0,.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+  /* ── Header ── */
+  .report-header {
+    background: linear-gradient(135deg, #0d47a1 0%, #0097a7 100%);
+    color: white; padding: 40px 48px 32px; position: relative; overflow: hidden;
+  }
+  .report-header::after {
+    content: '💧'; font-size: 220px; position: absolute; right: -20px; top: -40px;
+    opacity: .08; line-height: 1;
+  }
+  .report-header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 6px; }
+  .report-header p { font-size: 1rem; opacity: .85; }
+  .header-meta { margin-top: 20px; display: flex; gap: 24px; flex-wrap: wrap; }
+  .header-badge {
+    background: rgba(255,255,255,.15); border-radius: 20px;
+    padding: 4px 14px; font-size: .85rem; font-weight: 500;
+  }
+
+  /* ── Nav ── */
+  .nav { background: var(--primary); padding: 0 48px; display: flex; gap: 0; overflow-x: auto; }
+  .nav a {
+    color: rgba(255,255,255,.75); text-decoration: none; padding: 14px 18px;
+    font-size: .88rem; font-weight: 500; white-space: nowrap; border-bottom: 3px solid transparent;
+    transition: all .2s;
+  }
+  .nav a:hover { color: white; border-bottom-color: var(--accent2); }
+
+  /* ── Layout ── */
+  .container { max-width: 1400px; margin: 0 auto; padding: 32px 48px; }
+  .section { margin-bottom: 48px; }
+  .section-title {
+    font-size: 1.35rem; font-weight: 700; color: var(--primary);
+    margin-bottom: 20px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent); display: flex; align-items: center; gap: 10px;
+  }
+  .section-title span { font-size: 1.4rem; }
+
+  /* ── KPI Cards ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .kpi {
+    background: var(--card); border-radius: 12px; padding: 20px 22px;
+    box-shadow: var(--shadow); border-left: 4px solid var(--accent);
+    transition: transform .15s;
+  }
+  .kpi:hover { transform: translateY(-2px); }
+  .kpi.primary { border-left-color: var(--primary); }
+  .kpi.success { border-left-color: #2e7d32; }
+  .kpi.warning { border-left-color: #e65100; }
+  .kpi.danger { border-left-color: var(--danger); }
+  .kpi-label { font-size: .78rem; color: var(--muted); text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+  .kpi-value { font-size: 1.6rem; font-weight: 700; color: var(--text); line-height: 1; }
+  .kpi-sub { font-size: .78rem; color: var(--muted); margin-top: 6px; }
+
+  /* ── Charts ── */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .charts-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+  .chart-card {
+    background: var(--card); border-radius: 12px; padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .chart-card h3 { font-size: .9rem; font-weight: 600; color: var(--muted); margin-bottom: 16px; text-transform: uppercase; }
+  .chart-card canvas { max-height: 260px; }
+
+  /* ── Tables ── */
+  .table-card {
+    background: var(--card); border-radius: 12px; padding: 0;
+    box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px;
+  }
+  .table-title {
+    padding: 16px 22px; font-size: .9rem; font-weight: 600; color: var(--primary);
+    border-bottom: 1px solid var(--border); background: #f8faff;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    padding: 10px 14px; font-size: .75rem; color: var(--muted); font-weight: 600;
+    text-transform: uppercase; text-align: left; background: #f8faff;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 10px 14px; font-size: .85rem; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8faff; }
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-size: .72rem; font-weight: 600;
+  }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+
+  /* ── Month tabs ── */
+  .month-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .month-tab {
+    padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: .85rem;
+    font-weight: 600; border: 2px solid var(--border); background: var(--card);
+    transition: all .2s; color: var(--muted);
+  }
+  .month-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* ── Summary row ── */
+  .summary-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px;
+  }
+  .platform-card {
+    background: var(--card); border-radius: 12px; padding: 20px;
+    box-shadow: var(--shadow); border-top: 4px solid var(--accent);
+  }
+  .platform-card.meta { border-top-color: #1877f2; }
+  .platform-card.tiktok { border-top-color: #000000; }
+  .platform-card.google { border-top-color: #4285f4; }
+  .platform-name { font-weight: 700; font-size: 1rem; margin-bottom: 12px; }
+  .platform-metric { display: flex; justify-content: space-between; padding: 5px 0; font-size: .85rem; border-bottom: 1px solid #f0f0f0; }
+  .platform-metric:last-child { border-bottom: none; }
+  .platform-metric .val { font-weight: 700; }
+
+  /* ── Alert box ── */
+  .alert {
+    background: #fff3e0; border-left: 4px solid #ff6f00; border-radius: 8px;
+    padding: 14px 18px; margin-bottom: 20px; font-size: .88rem;
+  }
+  .alert strong { color: #e65100; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center; padding: 24px; color: var(--muted); font-size: .8rem;
+    border-top: 1px solid var(--border); margin-top: 40px;
+  }
+
+  @media (max-width: 900px) {
+    .container { padding: 16px 20px; }
+    .report-header { padding: 24px 20px; }
+    .nav { padding: 0 20px; }
+    .charts-row, .charts-row.triple, .summary-row { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="report-header">
+  <h1>Aquabeat Park — Relatório de Performance</h1>
+  <p>Consolidado de Tráfego Pago, Vendas e CRM</p>
+  <div class="header-meta">
+    <div class="header-badge">📅 Período: Dezembro 2025 – Fevereiro 2026</div>
+    <div class="header-badge">📊 Meta Ads · TikTok Ads · Google Ads · CRM · Vendas</div>
+    <div class="header-badge">🕒 Gerado em 06/03/2026 07:45</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="#visao-geral">Visão Geral</a>
+  <a href="#meta-ads">Meta Ads</a>
+  <a href="#tiktok-ads">TikTok Ads</a>
+  <a href="#google-ads">Google Ads</a>
+  <a href="#dayuse">Vendas DayUse</a>
+  <a href="#cotas">Vendas Cotas</a>
+  <a href="#crm">CRM / Agentes</a>
+  <a href="#cruzamento">Análise Cruzada</a>
+</nav>
+
+<div class="container">
+
+<!-- ═══════════════════ VISÃO GERAL ═══════════════════ -->
+<section class="section" id="visao-geral">
+  <div class="section-title"><span>🎯</span> Visão Geral Executiva</div>
+
+  <!-- KPI Summary -->
+  <div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi primary">
+      <div class="kpi-label">Investimento Total (3 meses)</div>
+      <div class="kpi-value">R$ 106.542,41</div>
+      <div class="kpi-sub">Meta + TikTok + Google</div>
+    </div>
+    <div class="kpi success">
+      <div class="kpi-label">Receita Total Estimada</div>
+      <div class="kpi-value">R$ 2.218.273,54</div>
+      <div class="kpi-sub">DayUse + Cotas (pago)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total Leads/Conversas CRM</div>
+      <div class="kpi-value">33.467</div>
+      <div class="kpi-sub">Conversas atribuídas (3 meses)</div>
+    </div>
+    <div class="kpi warning">
+      <div class="kpi-label">Total Ingressos DayUse</div>
+      <div class="kpi-value">15.480</div>
+      <div class="kpi-sub">Vendas de ingressos avulsos</div>
+    </div>
+    <div class="kpi success">
+      <div class="kpi-label">Total Cotas Vendidas</div>
+      <div class="kpi-value">2.022</div>
+      <div class="kpi-sub">Títulos Sócio Safira</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">ROAS Médio Estimado</div>
+      <div class="kpi-value">20,90x</div>
+      <div class="kpi-sub">Receita / Investimento Ads</div>
+    </div>
+  </div>
+
+  <!-- Investimento por plataforma por mês -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Investimento por Plataforma / Mês (R$)</h3>
+      <canvas id="chartInvPlat"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Receita vs. Investimento por Mês (R$)</h3>
+      <canvas id="chartROAS"></canvas>
+    </div>
+  </div>
+  <div class="charts-row triple">
+    <div class="chart-card">
+      <h3>Leads (Resultados Ads) por Mês</h3>
+      <canvas id="chartLeads"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Conversas CRM por Mês</h3>
+      <canvas id="chartCRM"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Receita DayUse vs. Cotas (R$)</h3>
+      <canvas id="chartReceita"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ META ADS ═══════════════════ -->
+<section class="section" id="meta-ads">
+  <div class="section-title"><span>📘</span> Meta Ads (Facebook / Instagram)</div>
+  <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px">
+    Consolida 3 contas: <strong>CONTA_OFC</strong>, <strong>CONTA_ING</strong>, <strong>CONTA_INTERNA</strong>
+  </p>
+
+  <!-- Per-month platform cards -->
+  <div class="summary-row">
+
+    <div class="platform-card meta">
+      <div class="platform-name">📘 Meta Ads — Dez/25</div>
+      <div class="platform-metric"><span>Investimento</span><span class="val">R$ 41.724,72</span></div>
+      <div class="platform-metric"><span>Impressões</span><span class="val">4.735.633</span></div>
+      <div class="platform-metric"><span>Alcance</span><span class="val">2.018.615</span></div>
+      <div class="platform-metric"><span>Resultados</span><span class="val">2.814</span></div>
+      <div class="platform-metric"><span>CPL Médio</span><span class="val">R$ 14,83</span></div>
+      <div class="platform-metric"><span>CPM Médio</span><span class="val">R$ 14,61</span></div>
+      <div class="platform-metric"><span>CPC Médio</span><span class="val">R$ 0,68</span></div>
+      <div class="platform-metric"><span>CTR Médio</span><span class="val">2,08%</span></div>
+    </div>
+
+    <div class="platform-card meta">
+      <div class="platform-name">📘 Meta Ads — Jan/26</div>
+      <div class="platform-metric"><span>Investimento</span><span class="val">R$ 28.146,24</span></div>
+      <div class="platform-metric"><span>Impressões</span><span class="val">3.151.740</span></div>
+      <div class="platform-metric"><span>Alcance</span><span class="val">1.386.928</span></div>
+      <div class="platform-metric"><span>Resultados</span><span class="val">2.003</span></div>
+      <div class="platform-metric"><span>CPL Médio</span><span class="val">R$ 14,05</span></div>
+      <div class="platform-metric"><span>CPM Médio</span><span class="val">R$ 13,50</span></div>
+      <div class="platform-metric"><span>CPC Médio</span><span class="val">R$ 0,55</span></div>
+      <div class="platform-metric"><span>CTR Médio</span><span class="val">2,45%</span></div>
+    </div>
+
+    <div class="platform-card meta">
+      <div class="platform-name">📘 Meta Ads — Fev/26</div>
+      <div class="platform-metric"><span>Investimento</span><span class="val">R$ 25.696,84</span></div>
+      <div class="platform-metric"><span>Impressões</span><span class="val">4.168.097</span></div>
+      <div class="platform-metric"><span>Alcance</span><span class="val">1.975.688</span></div>
+      <div class="platform-metric"><span>Resultados</span><span class="val">2.098</span></div>
+      <div class="platform-metric"><span>CPL Médio</span><span class="val">R$ 12,25</span></div>
+      <div class="platform-metric"><span>CPM Médio</span><span class="val">R$ 12,56</span></div>
+      <div class="platform-metric"><span>CPC Médio</span><span class="val">R$ 0,57</span></div>
+      <div class="platform-metric"><span>CTR Médio</span><span class="val">2,17%</span></div>
+    </div>
+
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Meta — Investimento por Mês (R$)</h3>
+      <canvas id="chartMetaInv"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Meta — CPL e CPC por Mês (R$)</h3>
+      <canvas id="chartMetaCPL"></canvas>
+    </div>
+  </div>
+
+  <!-- Campaigns Table - latest month (Fev/26) -->
+  <div class="table-card">
+    <div class="table-title">Campanhas por Conta — Fevereiro 2026</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Conta</th><th>Campanha</th><th>Investimento</th>
+          <th>Impressões</th><th>Alcance</th><th>Resultados</th>
+          <th>CPL</th><th>CTR</th><th>CPC</th><th>CPM</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td><span class="badge badge-green">ING</span></td>
+          <td>Campanha DayUse — Cópia</td>
+          <td>R$ 4.984,04</td>
+          <td>409.097</td>
+          <td>148.710</td>
+          <td>1.334</td>
+          <td>R$ 3,74</td>
+          <td>1,92%</td>
+          <td>R$ 0,63</td>
+          <td>R$ 12,18</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>Campanha Eventos</td>
+          <td>R$ 4.198,11</td>
+          <td>1.243.986</td>
+          <td>526.830</td>
+          <td>35.387</td>
+          <td>R$ 0,12</td>
+          <td>3,63%</td>
+          <td>R$ 0,09</td>
+          <td>R$ 3,37</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>G3 - ✅ [WPP] [ENGAJ] [BLACK]</td>
+          <td>R$ 4.188,78</td>
+          <td>369.896</td>
+          <td>198.845</td>
+          <td>863</td>
+          <td>R$ 4,85</td>
+          <td>1,40%</td>
+          <td>R$ 0,81</td>
+          <td>R$ 11,32</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>G3 - ✅ [WPP] [ENGAJ] 051125</td>
+          <td>R$ 2.848,60</td>
+          <td>253.397</td>
+          <td>113.364</td>
+          <td>504</td>
+          <td>R$ 5,65</td>
+          <td>1,85%</td>
+          <td>R$ 0,61</td>
+          <td>R$ 11,24</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>VendaCota Wpp</td>
+          <td>R$ 2.818,22</td>
+          <td>263.111</td>
+          <td>111.441</td>
+          <td>591</td>
+          <td>R$ 4,77</td>
+          <td>2,14%</td>
+          <td>R$ 0,50</td>
+          <td>R$ 10,71</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-orange">INTERNA</span></td>
+          <td>DayUse - Campanha Wpp</td>
+          <td>R$ 2.794,62</td>
+          <td>135.953</td>
+          <td>61.230</td>
+          <td>764</td>
+          <td>R$ 3,66</td>
+          <td>2,39%</td>
+          <td>R$ 0,86</td>
+          <td>R$ 20,56</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>RECONHECIMENTO DE MARCA</td>
+          <td>R$ 1.399,31</td>
+          <td>610.772</td>
+          <td>507.091</td>
+          <td>333.453</td>
+          <td>R$ 0,00</td>
+          <td>0,95%</td>
+          <td>R$ 0,24</td>
+          <td>R$ 2,29</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>RETORNO 2026 04-01-26 [DS]</td>
+          <td>R$ 1.166,90</td>
+          <td>87.430</td>
+          <td>35.334</td>
+          <td>207</td>
+          <td>R$ 5,64</td>
+          <td>2,65%</td>
+          <td>R$ 0,50</td>
+          <td>R$ 13,35</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>Campanha Carnaval Site</td>
+          <td>R$ 565,24</td>
+          <td>191.167</td>
+          <td>113.566</td>
+          <td>7.366</td>
+          <td>R$ 0,08</td>
+          <td>4,98%</td>
+          <td>R$ 0,06</td>
+          <td>R$ 2,96</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>Campanha Carnaval RecMarca</td>
+          <td>R$ 539,25</td>
+          <td>571.464</td>
+          <td>444.374</td>
+          <td>444.374</td>
+          <td>R$ 1,21</td>
+          <td>0,15%</td>
+          <td>R$ 0,64</td>
+          <td>R$ 0,94</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>Post do Instagram: ⏳ Últimas unidades...</td>
+          <td>R$ 72,57</td>
+          <td>16.811</td>
+          <td>16.337</td>
+          <td>114</td>
+          <td>R$ 0,64</td>
+          <td>0,66%</td>
+          <td>R$ 0,65</td>
+          <td>R$ 4,32</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>Parceria Aquatur</td>
+          <td>R$ 38,76</td>
+          <td>3.602</td>
+          <td>3.137</td>
+          <td>6</td>
+          <td>R$ 6,46</td>
+          <td>1,14%</td>
+          <td>R$ 0,95</td>
+          <td>R$ 10,76</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>Teste ads Facebook — Cópia</td>
+          <td>R$ 27,25</td>
+          <td>1.486</td>
+          <td>1.290</td>
+          <td>3</td>
+          <td>R$ 9,08</td>
+          <td>3,23%</td>
+          <td>R$ 0,57</td>
+          <td>R$ 18,34</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>Teste ads Facebook</td>
+          <td>R$ 23,65</td>
+          <td>3.000</td>
+          <td>2.827</td>
+          <td>202</td>
+          <td>R$ 0,12</td>
+          <td>7,07%</td>
+          <td>R$ 0,11</td>
+          <td>R$ 7,88</td>
+        </tr>
+
+        <tr>
+          <td><span class="badge badge-blue">OFC</span></td>
+          <td>Campanha Eventos — Conversa Wpp</td>
+          <td>R$ 14,60</td>
+          <td>4.384</td>
+          <td>4.327</td>
+          <td>44</td>
+          <td>R$ 0,33</td>
+          <td>1,21%</td>
+          <td>R$ 0,28</td>
+          <td>R$ 3,33</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════ TIKTOK ADS ═══════════════════ -->
+<section class="section" id="tiktok-ads">
+  <div class="section-title"><span>🎵</span> TikTok Ads</div>
+
+  <div class="summary-row">
+
+    <div class="platform-card tiktok">
+      <div class="platform-name">🎵 TikTok Ads — Dez/25</div>
+      <div class="platform-metric"><span>Investimento</span><span class="val">R$ 4.818,10</span></div>
+      <div class="platform-metric"><span>Impressões</span><span class="val">1.112.060</span></div>
+      <div class="platform-metric"><span>Alcance</span><span class="val">190.973</span></div>
+      <div class="platform-metric"><span>Resultados</span><span class="val">10.027</span></div>
+      <div class="platform-metric"><span>CPL Médio</span><span class="val">R$ 0,48</span></div>
+      <div class="platform-metric"><span>CPM Médio</span><span class="val">R$ 4,33</span></div>
+      <div class="platform-metric"><span>CPC Médio</span><span class="val">R$ 0,24</span></div>
+    </div>
+
+    <div class="platform-card tiktok">
+      <div class="platform-name">🎵 TikTok Ads — Jan/26</div>
+      <div class="platform-metric"><span>Investimento</span><span class="val">R$ 1.903,00</span></div>
+      <div class="platform-metric"><span>Impressões</span><span class="val">646.942</span></div>
+      <div class="platform-metric"><span>Alcance</span><span class="val">153.146</span></div>
+      <div class="platform-metric"><span>Resultados</span><span class="val">5.728</span></div>
+      <div class="platform-metric"><span>CPL Médio</span><span class="val">R$ 0,33</span></div>
+      <div class="platform-metric"><span>CPM Médio</span><span class="val">R$ 2,94</span></div>
+      <div class="platform-metric"><span>CPC Médio</span><span class="val">R$ 0,17</span></div>
+    </div>
+
+    <div class="platform-card tiktok">
+      <div class="platform-name">🎵 TikTok Ads — Fev/26</div>
+      <div class="platform-metric"><span>Investimento</span><span class="val">R$ 3.451,44</span></div>
+      <div class="platform-metric"><span>Impressões</span><span class="val">1.296.942</span></div>
+      <div class="platform-metric"><span>Alcance</span><span class="val">237.203</span></div>
+      <div class="platform-metric"><span>Resultados</span><span class="val">10.605</span></div>
+      <div class="platform-metric"><span>CPL Médio</span><span class="val">R$ 0,33</span></div>
+      <div class="platform-metric"><span>CPM Médio</span><span class="val">R$ 2,66</span></div>
+      <div class="platform-metric"><span>CPC Médio</span><span class="val">R$ 0,16</span></div>
+    </div>
+
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>TikTok — Investimento por Mês (R$)</h3>
+      <canvas id="chartTikInv"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>TikTok — Resultados por Mês</h3>
+      <canvas id="chartTikRes"></canvas>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-title">Campanhas TikTok — Fevereiro 2026</div>
+    <table>
+      <thead>
+        <tr><th>Campanha</th><th>Investimento</th><th>Impressões</th><th>Alcance</th><th>Resultados</th><th>CPL</th><th>CPC</th><th>CPM</th></tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td>Total de 6 resultados</td>
+          <td>R$ 1.725,72</td>
+          <td>648.471</td>
+          <td>107.918</td>
+          <td>0</td>
+          <td>—</td>
+          <td>R$ 0,16</td>
+          <td>R$ 2,66</td>
+        </tr>
+
+        <tr>
+          <td>LeadsGen</td>
+          <td>R$ 1.080,37</td>
+          <td>387.963</td>
+          <td>96.141</td>
+          <td>4.859</td>
+          <td>R$ 0,22</td>
+          <td>R$ 0,22</td>
+          <td>R$ 2,78</td>
+        </tr>
+
+        <tr>
+          <td>Leads Wpp</td>
+          <td>R$ 645,35</td>
+          <td>260.508</td>
+          <td>33.144</td>
+          <td>5.746</td>
+          <td>R$ 0,11</td>
+          <td>R$ 0,11</td>
+          <td>R$ 2,48</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════ GOOGLE ADS ═══════════════════ -->
+<section class="section" id="google-ads">
+  <div class="section-title"><span>🔍</span> Google Ads</div>
+
+  <div class="alert">
+    <strong>⚠️ Dados disponíveis apenas para Dezembro 2025.</strong>
+    Os arquivos Google Ads (Relatorio Trafego 2026) contêm somente o período de Dezembro 2025.
+    Solicite os exports de Jan/26 e Fev/26 para análise completa.
+  </div>
+
+  <div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi google">
+      <div class="kpi-label">Período</div>
+      <div class="kpi-value" style="font-size:1.1rem">Dezembro 2025</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Investimento</div>
+      <div class="kpi-value">R$ 802,07</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Impressões</div>
+      <div class="kpi-value">41.331</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Cliques</div>
+      <div class="kpi-value">9.174</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">CTR</div>
+      <div class="kpi-value">22,20%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">CPC Médio</div>
+      <div class="kpi-value">R$ 0,09</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">CPM Médio</div>
+      <div class="kpi-value">R$ 19,41</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Conversões</div>
+      <div class="kpi-value">0</div>
+    </div>
+    <div class="kpi warning">
+      <div class="kpi-label">Custo / Conversão</div>
+      <div class="kpi-value">R$ 0,00</div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-title">Campanhas Google Ads — Dezembro 2025</div>
+    <table>
+      <thead>
+        <tr><th>Campanha</th><th>Investimento</th><th>Impressões</th><th>Cliques</th><th>Conversões</th></tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td>Pesquisa - Institucional - NOV23</td>
+          <td>R$ 802,07</td>
+          <td>41.331</td>
+          <td>9.174</td>
+          <td>0</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="dayuse">
+  <div class="section-title"><span>🎟️</span> Vendas DayUse</div>
+
+  <div class="summary-row">
+
+    <div class="platform-card" style="border-top-color:#00897b">
+      <div class="platform-name">🎟️ DayUse — Dez/25</div>
+      <div class="platform-metric"><span>Total Ingressos</span><span class="val">3.998</span></div>
+      <div class="platform-metric"><span>Receita Total</span><span class="val">R$ 497.000,00</span></div>
+      <div class="platform-metric"><span>Ticket Médio</span><span class="val">R$ 124,31</span></div>
+    </div>
+
+    <div class="platform-card" style="border-top-color:#00897b">
+      <div class="platform-name">🎟️ DayUse — Jan/26</div>
+      <div class="platform-metric"><span>Total Ingressos</span><span class="val">4.763</span></div>
+      <div class="platform-metric"><span>Receita Total</span><span class="val">R$ 470.738,00</span></div>
+      <div class="platform-metric"><span>Ticket Médio</span><span class="val">R$ 98,83</span></div>
+    </div>
+
+    <div class="platform-card" style="border-top-color:#00897b">
+      <div class="platform-name">🎟️ DayUse — Fev/26</div>
+      <div class="platform-metric"><span>Total Ingressos</span><span class="val">6.719</span></div>
+      <div class="platform-metric"><span>Receita Total</span><span class="val">R$ 541.204,00</span></div>
+      <div class="platform-metric"><span>Ticket Médio</span><span class="val">R$ 80,55</span></div>
+    </div>
+
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Receita DayUse por Mês (R$)</h3>
+      <canvas id="chartDayInv"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Ingressos Vendidos por Mês</h3>
+      <canvas id="chartDayIng"></canvas>
+    </div>
+  </div>
+
+  <!-- Top consultores Fev/26 -->
+  <div class="table-card">
+    <div class="table-title">Top Consultores DayUse — Fevereiro 2026</div>
+    <table>
+      <thead><tr><th>#</th><th>Consultor</th><th>Total Ingressos</th><th>Receita Total</th><th>Ticket Médio</th></tr></thead>
+      <tbody>
+
+        <tr>
+          <td><strong>#1</strong></td>
+          <td>VENDA DIRETA SITE</td>
+          <td>3.724</td>
+          <td>R$ 296.778,00</td>
+          <td>R$ 79,69</td>
+        </tr>
+
+        <tr>
+          <td><strong>#2</strong></td>
+          <td>WALQUIRIA CAMPOS DA SILVA</td>
+          <td>374</td>
+          <td>R$ 29.510,00</td>
+          <td>R$ 78,90</td>
+        </tr>
+
+        <tr>
+          <td><strong>#3</strong></td>
+          <td>JUAN PABLO FERREIRA DIAS</td>
+          <td>166</td>
+          <td>R$ 13.728,00</td>
+          <td>R$ 82,70</td>
+        </tr>
+
+        <tr>
+          <td><strong>#4</strong></td>
+          <td>John Wesley Brito Herdy</td>
+          <td>162</td>
+          <td>R$ 13.434,00</td>
+          <td>R$ 82,93</td>
+        </tr>
+
+        <tr>
+          <td><strong>#5</strong></td>
+          <td>FABIO GONCALVES DIAS</td>
+          <td>162</td>
+          <td>R$ 13.308,00</td>
+          <td>R$ 82,15</td>
+        </tr>
+
+        <tr>
+          <td><strong>#6</strong></td>
+          <td>RAFAEL PEREIRA VICENTE CARREIRA</td>
+          <td>129</td>
+          <td>R$ 10.394,00</td>
+          <td>R$ 80,57</td>
+        </tr>
+
+        <tr>
+          <td><strong>#7</strong></td>
+          <td>MONIZE RAPHAELE COSTA</td>
+          <td>116</td>
+          <td>R$ 9.366,00</td>
+          <td>R$ 80,74</td>
+        </tr>
+
+        <tr>
+          <td><strong>#8</strong></td>
+          <td>RODRIGO DINIZ DOS SANTOS</td>
+          <td>93</td>
+          <td>R$ 7.520,00</td>
+          <td>R$ 80,86</td>
+        </tr>
+
+        <tr>
+          <td><strong>#9</strong></td>
+          <td>GLECIA CESARIA DOS SANTOS</td>
+          <td>86</td>
+          <td>R$ 7.330,00</td>
+          <td>R$ 85,23</td>
+        </tr>
+
+        <tr>
+          <td><strong>#10</strong></td>
+          <td>LEVI CARNEIRO FILHO</td>
+          <td>84</td>
+          <td>R$ 7.000,00</td>
+          <td>R$ 83,33</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="cotas">
+  <div class="section-title"><span>🏆</span> Vendas Cotas / Títulos Sócio</div>
+
+  <div class="summary-row">
+
+    <div class="platform-card" style="border-top-color:#7b1fa2">
+      <div class="platform-name">🏆 Cotas — Dez/25</div>
+      <div class="platform-metric"><span>Títulos Vendidos</span><span class="val">1.057</span></div>
+      <div class="platform-metric"><span>Valor Total dos Planos</span><span class="val">R$ 6.524.040,20</span></div>
+      <div class="platform-metric"><span>Total Pago (recebido)</span><span class="val">R$ 467.862,24</span></div>
+    </div>
+
+    <div class="platform-card" style="border-top-color:#7b1fa2">
+      <div class="platform-name">🏆 Cotas — Jan/26</div>
+      <div class="platform-metric"><span>Títulos Vendidos</span><span class="val">585</span></div>
+      <div class="platform-metric"><span>Valor Total dos Planos</span><span class="val">R$ 4.496.415,12</span></div>
+      <div class="platform-metric"><span>Total Pago (recebido)</span><span class="val">R$ 180.087,38</span></div>
+    </div>
+
+    <div class="platform-card" style="border-top-color:#7b1fa2">
+      <div class="platform-name">🏆 Cotas — Fev/26</div>
+      <div class="platform-metric"><span>Títulos Vendidos</span><span class="val">380</span></div>
+      <div class="platform-metric"><span>Valor Total dos Planos</span><span class="val">R$ 2.706.025,08</span></div>
+      <div class="platform-metric"><span>Total Pago (recebido)</span><span class="val">R$ 61.381,92</span></div>
+    </div>
+
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Cotas — Valor dos Planos por Mês (R$)</h3>
+      <canvas id="chartCotaPlano"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Cotas — Títulos Vendidos por Mês</h3>
+      <canvas id="chartCotaVendas"></canvas>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Origem das Vendas — Fevereiro 2026</h3>
+      <canvas id="chartCotaOrigem"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Produtos Mais Vendidos — Fevereiro 2026</h3>
+      <canvas id="chartCotaProd"></canvas>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-title">Top Promotores — Fevereiro 2026</div>
+    <table>
+      <thead><tr><th>#</th><th>Promotor</th><th>Títulos Vendidos</th><th>Valor Total Planos</th></tr></thead>
+      <tbody>
+
+        <tr>
+          <td><strong>#1</strong></td>
+          <td>RODRIGO DINIZ DOS SANTOS</td>
+          <td>35</td>
+          <td>R$ 253.503,18</td>
+        </tr>
+
+        <tr>
+          <td><strong>#2</strong></td>
+          <td>RAFAEL PEREIRA VICENTE CARREIRA</td>
+          <td>28</td>
+          <td>R$ 165.993,12</td>
+        </tr>
+
+        <tr>
+          <td><strong>#3</strong></td>
+          <td>RENATO NOGUEIRA BARBOSA</td>
+          <td>23</td>
+          <td>R$ 152.111,04</td>
+        </tr>
+
+        <tr>
+          <td><strong>#4</strong></td>
+          <td>JONAS GUEDES CARDOSO CRISPIM</td>
+          <td>21</td>
+          <td>R$ 162.916,80</td>
+        </tr>
+
+        <tr>
+          <td><strong>#5</strong></td>
+          <td>John Wesley Brito Herdy</td>
+          <td>19</td>
+          <td>R$ 148.728,48</td>
+        </tr>
+
+        <tr>
+          <td><strong>#6</strong></td>
+          <td>JULIO CESAR BRASIL DE SANTOS</td>
+          <td>18</td>
+          <td>R$ 87.764,16</td>
+        </tr>
+
+        <tr>
+          <td><strong>#7</strong></td>
+          <td>MARIA TEREZA DOS SANTOS SILVA SERPA</td>
+          <td>17</td>
+          <td>R$ 93.078,72</td>
+        </tr>
+
+        <tr>
+          <td><strong>#8</strong></td>
+          <td>GLECIA CESARIA DOS SANTOS</td>
+          <td>16</td>
+          <td>R$ 129.182,34</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="crm">
+  <div class="section-title"><span>💬</span> CRM — Agentes (Profluxus / Chatwoot)</div>
+
+  <div class="summary-row">
+
+    <div class="platform-card" style="border-top-color:#f57c00">
+      <div class="platform-name">💬 CRM — Dez/25</div>
+      <div class="platform-metric"><span>Conversas Atribuídas</span><span class="val">12.368</span></div>
+      <div class="platform-metric"><span>Resoluções</span><span class="val">1.707</span></div>
+      <div class="platform-metric"><span>Agentes Ativos</span><span class="val">61</span></div>
+    </div>
+
+    <div class="platform-card" style="border-top-color:#f57c00">
+      <div class="platform-name">💬 CRM — Jan/26</div>
+      <div class="platform-metric"><span>Conversas Atribuídas</span><span class="val">12.484</span></div>
+      <div class="platform-metric"><span>Resoluções</span><span class="val">3.177</span></div>
+      <div class="platform-metric"><span>Agentes Ativos</span><span class="val">61</span></div>
+    </div>
+
+    <div class="platform-card" style="border-top-color:#f57c00">
+      <div class="platform-name">💬 CRM — Fev/26</div>
+      <div class="platform-metric"><span>Conversas Atribuídas</span><span class="val">8.615</span></div>
+      <div class="platform-metric"><span>Resoluções</span><span class="val">1.173</span></div>
+      <div class="platform-metric"><span>Agentes Ativos</span><span class="val">61</span></div>
+    </div>
+
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Conversas Atribuídas por Mês</h3>
+      <canvas id="chartAgConv"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Resoluções por Mês</h3>
+      <canvas id="chartAgRes"></canvas>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-title">Agentes — Dez/25</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Agente</th><th>Conversas</th><th>Resoluções</th>
+          <th>Tempo 1ª Resposta</th><th>Tempo Resolução</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td><strong>#1</strong></td>
+          <td>WC</td>
+          <td>1.089</td>
+          <td>7</td>
+          <td>4 horas 47 minutos</td>
+          <td>11 dias 7 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#2</strong></td>
+          <td>Raissa Thais</td>
+          <td>816</td>
+          <td>553</td>
+          <td>21 horas 51 minutos</td>
+          <td>7 dias 6 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#3</strong></td>
+          <td>John Wesley</td>
+          <td>742</td>
+          <td>0</td>
+          <td>1 hora 29 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#4</strong></td>
+          <td>Rodrigo Vilasboas</td>
+          <td>727</td>
+          <td>8</td>
+          <td>3 dias 3 horas</td>
+          <td>26 dias 17 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#5</strong></td>
+          <td>Monize Raphaele</td>
+          <td>611</td>
+          <td>612</td>
+          <td>10 horas 18 minutos</td>
+          <td>5 dias 13 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#6</strong></td>
+          <td>KAROLAYNE HORRANA</td>
+          <td>514</td>
+          <td>257</td>
+          <td>20 horas 15 minutos</td>
+          <td>3 dias 22 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#7</strong></td>
+          <td>Márcio Gonçalves</td>
+          <td>438</td>
+          <td>0</td>
+          <td>14 horas 2 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#8</strong></td>
+          <td>Erica Poliana</td>
+          <td>394</td>
+          <td>4</td>
+          <td>11 horas 21 minutos</td>
+          <td>10 horas 29 segundos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#9</strong></td>
+          <td>Tereza Serpa</td>
+          <td>369</td>
+          <td>2</td>
+          <td>4 horas 46 minutos</td>
+          <td>1 minuto 25 segundos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#10</strong></td>
+          <td>Diego Cardoso</td>
+          <td>350</td>
+          <td>0</td>
+          <td>1 hora 43 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#11</strong></td>
+          <td>Wanessa Viana</td>
+          <td>339</td>
+          <td>0</td>
+          <td>20 horas 19 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#12</strong></td>
+          <td>Luis Andre</td>
+          <td>336</td>
+          <td>0</td>
+          <td>1 dia 6 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#13</strong></td>
+          <td>Wanderley da Silva Miranda</td>
+          <td>325</td>
+          <td>0</td>
+          <td>14 horas 22 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#14</strong></td>
+          <td>Eglima Costa</td>
+          <td>324</td>
+          <td>0</td>
+          <td>15 horas 15 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#15</strong></td>
+          <td>Nicolle Savaget</td>
+          <td>319</td>
+          <td>0</td>
+          <td>6 dias 18 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#16</strong></td>
+          <td>Isabella Fernandes</td>
+          <td>314</td>
+          <td>1</td>
+          <td>16 horas 27 minutos</td>
+          <td>1 dia 17 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#17</strong></td>
+          <td>Thais Matos</td>
+          <td>310</td>
+          <td>3</td>
+          <td>5 horas 41 minutos</td>
+          <td>6 horas 9 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#18</strong></td>
+          <td>Uflander Perazolli</td>
+          <td>291</td>
+          <td>0</td>
+          <td>2 dias 3 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#19</strong></td>
+          <td>Pamela Carvalho</td>
+          <td>289</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#20</strong></td>
+          <td>Rafael Pereira</td>
+          <td>288</td>
+          <td>1</td>
+          <td>10 horas 30 minutos</td>
+          <td>5 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#21</strong></td>
+          <td>Simone Nogueira</td>
+          <td>262</td>
+          <td>0</td>
+          <td>22 horas 51 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#22</strong></td>
+          <td>Anete Carvalho</td>
+          <td>231</td>
+          <td>0</td>
+          <td>18 horas 59 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#23</strong></td>
+          <td>Elizete Nolasco Bueno</td>
+          <td>221</td>
+          <td>2</td>
+          <td>N/A</td>
+          <td>1 hora 45 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#24</strong></td>
+          <td>Priscila Helena Pereira Trombine</td>
+          <td>213</td>
+          <td>0</td>
+          <td>5 dias 12 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#25</strong></td>
+          <td>André Luis da Silva Diniz</td>
+          <td>192</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#26</strong></td>
+          <td>Sidney Pereira Leal</td>
+          <td>175</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#27</strong></td>
+          <td>Ivan José</td>
+          <td>151</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#28</strong></td>
+          <td>Rodrigo Diniz</td>
+          <td>150</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#29</strong></td>
+          <td>Carla Laudares</td>
+          <td>148</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#30</strong></td>
+          <td>Itaguari Neto</td>
+          <td>145</td>
+          <td>1</td>
+          <td>N/A</td>
+          <td>23 horas 43 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#31</strong></td>
+          <td>Juan Pablo</td>
+          <td>137</td>
+          <td>145</td>
+          <td>4 horas 59 minutos</td>
+          <td>2 dias 5 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#32</strong></td>
+          <td>Miria Rodrigues</td>
+          <td>134</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#33</strong></td>
+          <td>Rodolfo Rodrigo</td>
+          <td>130</td>
+          <td>110</td>
+          <td>10 horas 22 minutos</td>
+          <td>4 dias 22 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#34</strong></td>
+          <td>Michael Rodrigues</td>
+          <td>130</td>
+          <td>1</td>
+          <td>N/A</td>
+          <td>2 minutos 47 segundos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#35</strong></td>
+          <td>Luciana Santos</td>
+          <td>128</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#36</strong></td>
+          <td>Patrícia Kelly</td>
+          <td>127</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#37</strong></td>
+          <td>Stefany Arantes</td>
+          <td>125</td>
+          <td>0</td>
+          <td>1 dia 11 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#38</strong></td>
+          <td>Carlos Castro</td>
+          <td>124</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#39</strong></td>
+          <td>Julio Brasil</td>
+          <td>122</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#40</strong></td>
+          <td>Elton Alves</td>
+          <td>77</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#41</strong></td>
+          <td>Wanderson Januário</td>
+          <td>53</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#42</strong></td>
+          <td>Tamires Mazala</td>
+          <td>3</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#43</strong></td>
+          <td>Carlos Fernandes</td>
+          <td>2</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#44</strong></td>
+          <td>Gilson Junio</td>
+          <td>1</td>
+          <td>0</td>
+          <td>22 segundos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#45</strong></td>
+          <td>Dayvid Henrique</td>
+          <td>1</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#46</strong></td>
+          <td>Levi Carneiro filho</td>
+          <td>1</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#47</strong></td>
+          <td>Thais Luciana</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#48</strong></td>
+          <td>Letícia Santos</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#49</strong></td>
+          <td>Ana luiza</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#50</strong></td>
+          <td>Automação Sistema</td>
+          <td>0</td>
+          <td>0</td>
+          <td>1 hora 5 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#51</strong></td>
+          <td>Renato Nogueira Barbosa</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#52</strong></td>
+          <td>Nivia Apolinaria</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#53</strong></td>
+          <td>Helton Espinola</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#54</strong></td>
+          <td>Walter Junio</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#55</strong></td>
+          <td>David Stephano</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#56</strong></td>
+          <td>Wanderson Silva</td>
+          <td>0</td>
+          <td>0</td>
+          <td>1 hora 20 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#57</strong></td>
+          <td>Luana Lucia</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#58</strong></td>
+          <td>Evandro Magno</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#59</strong></td>
+          <td>Dayanne Poliana</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#60</strong></td>
+          <td>Jessica Dias</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#61</strong></td>
+          <td>Julia Tatiane</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-card">
+    <div class="table-title">Agentes — Jan/26</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Agente</th><th>Conversas</th><th>Resoluções</th>
+          <th>Tempo 1ª Resposta</th><th>Tempo Resolução</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td><strong>#1</strong></td>
+          <td>WC</td>
+          <td>1.980</td>
+          <td>38</td>
+          <td>14 horas 23 minutos</td>
+          <td>18 dias 17 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#2</strong></td>
+          <td>Rafael Pereira</td>
+          <td>1.050</td>
+          <td>0</td>
+          <td>10 horas 11 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#3</strong></td>
+          <td>Monize Raphaele</td>
+          <td>675</td>
+          <td>838</td>
+          <td>21 horas 17 minutos</td>
+          <td>5 dias 7 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#4</strong></td>
+          <td>Rodrigo Vilasboas</td>
+          <td>562</td>
+          <td>11</td>
+          <td>2 dias 8 horas</td>
+          <td>76 dias 1 hora</td>
+        </tr>
+
+        <tr>
+          <td><strong>#5</strong></td>
+          <td>Márcio Gonçalves</td>
+          <td>556</td>
+          <td>3</td>
+          <td>3 horas 5 minutos</td>
+          <td>1 hora 43 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#6</strong></td>
+          <td>John Wesley</td>
+          <td>538</td>
+          <td>3</td>
+          <td>7 horas 1 minuto</td>
+          <td>20 dias 14 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#7</strong></td>
+          <td>KAROLAYNE HORRANA</td>
+          <td>526</td>
+          <td>876</td>
+          <td>2 dias 3 horas</td>
+          <td>7 dias 15 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#8</strong></td>
+          <td>Isabella Fernandes</td>
+          <td>453</td>
+          <td>1</td>
+          <td>22 horas 59 minutos</td>
+          <td>2 dias 21 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#9</strong></td>
+          <td>Juan Pablo</td>
+          <td>424</td>
+          <td>473</td>
+          <td>23 horas 42 minutos</td>
+          <td>8 dias 12 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#10</strong></td>
+          <td>Erica Poliana</td>
+          <td>322</td>
+          <td>2</td>
+          <td>8 horas 37 minutos</td>
+          <td>9 horas 9 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#11</strong></td>
+          <td>Rodolfo Rodrigo</td>
+          <td>254</td>
+          <td>353</td>
+          <td>1 dia 1 hora</td>
+          <td>6 dias 19 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#12</strong></td>
+          <td>Tereza Serpa</td>
+          <td>252</td>
+          <td>0</td>
+          <td>1 dia 10 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#13</strong></td>
+          <td>Diego Cardoso</td>
+          <td>249</td>
+          <td>4</td>
+          <td>14 horas 16 minutos</td>
+          <td>2 horas 44 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#14</strong></td>
+          <td>Luis Andre</td>
+          <td>238</td>
+          <td>2</td>
+          <td>13 horas 31 minutos</td>
+          <td>50 dias 23 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#15</strong></td>
+          <td>Wanderley da Silva Miranda</td>
+          <td>233</td>
+          <td>1</td>
+          <td>1 dia 11 horas</td>
+          <td>34 minutos 33 segundos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#16</strong></td>
+          <td>Simone Nogueira</td>
+          <td>233</td>
+          <td>3</td>
+          <td>18 horas 25 minutos</td>
+          <td>6 dias 7 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#17</strong></td>
+          <td>Wanessa Viana</td>
+          <td>233</td>
+          <td>2</td>
+          <td>1 dia 12 horas</td>
+          <td>44 dias 13 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#18</strong></td>
+          <td>Anete Carvalho</td>
+          <td>226</td>
+          <td>0</td>
+          <td>1 dia 23 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#19</strong></td>
+          <td>Thais Matos</td>
+          <td>225</td>
+          <td>4</td>
+          <td>8 horas 23 minutos</td>
+          <td>1 dia 5 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#20</strong></td>
+          <td>Uflander Perazolli</td>
+          <td>213</td>
+          <td>1</td>
+          <td>2 dias 15 horas</td>
+          <td>30 dias 6 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#21</strong></td>
+          <td>Priscila Helena Pereira Trombine</td>
+          <td>206</td>
+          <td>1</td>
+          <td>5 dias 12 horas</td>
+          <td>1 dia 3 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#22</strong></td>
+          <td>Elizete Nolasco Bueno</td>
+          <td>203</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#23</strong></td>
+          <td>Pamela Carvalho</td>
+          <td>188</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#24</strong></td>
+          <td>Rodrigo Diniz</td>
+          <td>180</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#25</strong></td>
+          <td>Sidney Pereira Leal</td>
+          <td>180</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#26</strong></td>
+          <td>Ivan José</td>
+          <td>179</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#27</strong></td>
+          <td>Itaguari Neto</td>
+          <td>178</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#28</strong></td>
+          <td>Wanderson Januário</td>
+          <td>176</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#29</strong></td>
+          <td>Patrícia Kelly</td>
+          <td>175</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#30</strong></td>
+          <td>Nicolle Savaget</td>
+          <td>165</td>
+          <td>1</td>
+          <td>9 horas 44 minutos</td>
+          <td>1 dia 19 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#31</strong></td>
+          <td>Raissa Thais</td>
+          <td>164</td>
+          <td>542</td>
+          <td>1 dia 1 hora</td>
+          <td>12 dias 21 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#32</strong></td>
+          <td>Eglima Costa</td>
+          <td>157</td>
+          <td>2</td>
+          <td>18 horas 23 minutos</td>
+          <td>33 minutos 59 segundos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#33</strong></td>
+          <td>André Luis da Silva Diniz</td>
+          <td>139</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#34</strong></td>
+          <td>Michael Rodrigues</td>
+          <td>131</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#35</strong></td>
+          <td>Tamires Mazala</td>
+          <td>111</td>
+          <td>0</td>
+          <td>1 hora 55 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#36</strong></td>
+          <td>Julio Brasil</td>
+          <td>109</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#37</strong></td>
+          <td>Elton Alves</td>
+          <td>85</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#38</strong></td>
+          <td>Carlos Castro</td>
+          <td>83</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#39</strong></td>
+          <td>Dayvid Henrique</td>
+          <td>69</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#40</strong></td>
+          <td>Stefany Arantes</td>
+          <td>65</td>
+          <td>2</td>
+          <td>23 horas 20 minutos</td>
+          <td>14 dias 23 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#41</strong></td>
+          <td>Miria Rodrigues</td>
+          <td>36</td>
+          <td>1</td>
+          <td>N/A</td>
+          <td>126 dias 4 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#42</strong></td>
+          <td>Julia Tatiane</td>
+          <td>31</td>
+          <td>8</td>
+          <td>1 hora 5 minutos</td>
+          <td>14 horas 27 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#43</strong></td>
+          <td>Carla Laudares</td>
+          <td>12</td>
+          <td>1</td>
+          <td>N/A</td>
+          <td>54 dias 3 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#44</strong></td>
+          <td>Levi Carneiro filho</td>
+          <td>11</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#45</strong></td>
+          <td>Gilson Junio</td>
+          <td>9</td>
+          <td>1</td>
+          <td>46 segundos</td>
+          <td>61 dias 5 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#46</strong></td>
+          <td>Thais Luciana</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#47</strong></td>
+          <td>Carlos Fernandes</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#48</strong></td>
+          <td>Letícia Santos</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#49</strong></td>
+          <td>Ana luiza</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#50</strong></td>
+          <td>Automação Sistema</td>
+          <td>0</td>
+          <td>0</td>
+          <td>45 segundos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#51</strong></td>
+          <td>Renato Nogueira Barbosa</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#52</strong></td>
+          <td>Nivia Apolinaria</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#53</strong></td>
+          <td>Helton Espinola</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#54</strong></td>
+          <td>Walter Junio</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#55</strong></td>
+          <td>David Stephano</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#56</strong></td>
+          <td>Luciana Santos</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#57</strong></td>
+          <td>Wanderson Silva</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#58</strong></td>
+          <td>Luana Lucia</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#59</strong></td>
+          <td>Evandro Magno</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#60</strong></td>
+          <td>Dayanne Poliana</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#61</strong></td>
+          <td>Jessica Dias</td>
+          <td>0</td>
+          <td>3</td>
+          <td>N/A</td>
+          <td>72 dias 8 horas</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-card">
+    <div class="table-title">Agentes — Fev/26</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Agente</th><th>Conversas</th><th>Resoluções</th>
+          <th>Tempo 1ª Resposta</th><th>Tempo Resolução</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td><strong>#1</strong></td>
+          <td>WC</td>
+          <td>3.409</td>
+          <td>191</td>
+          <td>16 horas 14 minutos</td>
+          <td>26 dias 7 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#2</strong></td>
+          <td>John Wesley</td>
+          <td>946</td>
+          <td>1</td>
+          <td>4 horas 11 minutos</td>
+          <td>1 dia 3 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#3</strong></td>
+          <td>Isabella Fernandes</td>
+          <td>873</td>
+          <td>1</td>
+          <td>7 horas 54 minutos</td>
+          <td>2 horas 45 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#4</strong></td>
+          <td>Rafael Pereira</td>
+          <td>336</td>
+          <td>0</td>
+          <td>18 horas 36 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#5</strong></td>
+          <td>Julia Tatiane</td>
+          <td>330</td>
+          <td>18</td>
+          <td>46 minutos 29 segundos</td>
+          <td>2 dias 7 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#6</strong></td>
+          <td>Levi Carneiro filho</td>
+          <td>309</td>
+          <td>4</td>
+          <td>36 minutos 37 segundos</td>
+          <td>53 minutos 45 segundos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#7</strong></td>
+          <td>Tereza Serpa</td>
+          <td>214</td>
+          <td>0</td>
+          <td>1 dia 13 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#8</strong></td>
+          <td>Monize Raphaele</td>
+          <td>210</td>
+          <td>281</td>
+          <td>16 horas 47 minutos</td>
+          <td>9 dias 22 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#9</strong></td>
+          <td>Raissa Thais</td>
+          <td>146</td>
+          <td>193</td>
+          <td>3 horas 49 minutos</td>
+          <td>6 dias 11 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#10</strong></td>
+          <td>Juan Pablo</td>
+          <td>139</td>
+          <td>279</td>
+          <td>15 horas 39 minutos</td>
+          <td>7 dias 11 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#11</strong></td>
+          <td>Tamires Mazala</td>
+          <td>110</td>
+          <td>1</td>
+          <td>3 horas 2 minutos</td>
+          <td>1 dia 9 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#12</strong></td>
+          <td>KAROLAYNE HORRANA</td>
+          <td>108</td>
+          <td>172</td>
+          <td>11 horas 2 minutos</td>
+          <td>9 dias 6 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#13</strong></td>
+          <td>Márcio Gonçalves</td>
+          <td>107</td>
+          <td>4</td>
+          <td>23 horas 29 minutos</td>
+          <td>3 horas 34 segundos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#14</strong></td>
+          <td>Diego Cardoso</td>
+          <td>83</td>
+          <td>5</td>
+          <td>1 dia 5 horas</td>
+          <td>18 dias 23 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#15</strong></td>
+          <td>Nicolle Savaget</td>
+          <td>79</td>
+          <td>1</td>
+          <td>2 dias 4 horas</td>
+          <td>1 minuto 15 segundos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#16</strong></td>
+          <td>Wanderley da Silva Miranda</td>
+          <td>75</td>
+          <td>1</td>
+          <td>7 horas 30 minutos</td>
+          <td>7 dias 12 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#17</strong></td>
+          <td>Anete Carvalho</td>
+          <td>69</td>
+          <td>0</td>
+          <td>6 dias 21 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#18</strong></td>
+          <td>Erica Poliana</td>
+          <td>69</td>
+          <td>1</td>
+          <td>14 horas 20 minutos</td>
+          <td>15 horas 4 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#19</strong></td>
+          <td>Uflander Perazolli</td>
+          <td>68</td>
+          <td>0</td>
+          <td>3 dias 17 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#20</strong></td>
+          <td>Thais Matos</td>
+          <td>67</td>
+          <td>0</td>
+          <td>1 dia 18 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#21</strong></td>
+          <td>Luis Andre</td>
+          <td>64</td>
+          <td>0</td>
+          <td>6 minutos 52 segundos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#22</strong></td>
+          <td>Simone Nogueira</td>
+          <td>56</td>
+          <td>0</td>
+          <td>1 hora 37 minutos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#23</strong></td>
+          <td>Wanessa Viana</td>
+          <td>53</td>
+          <td>0</td>
+          <td>6 dias 19 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#24</strong></td>
+          <td>Priscila Helena Pereira Trombine</td>
+          <td>53</td>
+          <td>0</td>
+          <td>6 dias 1 hora</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#25</strong></td>
+          <td>Pamela Carvalho</td>
+          <td>52</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#26</strong></td>
+          <td>Elizete Nolasco Bueno</td>
+          <td>49</td>
+          <td>0</td>
+          <td>2 dias 2 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#27</strong></td>
+          <td>Patrícia Kelly</td>
+          <td>40</td>
+          <td>1</td>
+          <td>5 dias 9 horas</td>
+          <td>115 dias 21 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#28</strong></td>
+          <td>Ivan José</td>
+          <td>38</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#29</strong></td>
+          <td>Wanderson Januário</td>
+          <td>38</td>
+          <td>1</td>
+          <td>N/A</td>
+          <td>16 minutos 29 segundos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#30</strong></td>
+          <td>Sidney Pereira Leal</td>
+          <td>37</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#31</strong></td>
+          <td>Itaguari Neto</td>
+          <td>37</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#32</strong></td>
+          <td>Rodrigo Diniz</td>
+          <td>36</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#33</strong></td>
+          <td>André Luis da Silva Diniz</td>
+          <td>36</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#34</strong></td>
+          <td>Elton Alves</td>
+          <td>35</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#35</strong></td>
+          <td>Michael Rodrigues</td>
+          <td>34</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#36</strong></td>
+          <td>Julio Brasil</td>
+          <td>31</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#37</strong></td>
+          <td>Carlos Castro</td>
+          <td>30</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#38</strong></td>
+          <td>Rodrigo Vilasboas</td>
+          <td>30</td>
+          <td>2</td>
+          <td>1 dia 20 horas</td>
+          <td>1 dia 2 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#39</strong></td>
+          <td>Eglima Costa</td>
+          <td>29</td>
+          <td>0</td>
+          <td>3 dias 3 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#40</strong></td>
+          <td>Miria Rodrigues</td>
+          <td>27</td>
+          <td>3</td>
+          <td>N/A</td>
+          <td>3 dias 3 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#41</strong></td>
+          <td>Stefany Arantes</td>
+          <td>25</td>
+          <td>0</td>
+          <td>24 dias 19 horas</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#42</strong></td>
+          <td>Dayvid Henrique</td>
+          <td>23</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#43</strong></td>
+          <td>Rodolfo Rodrigo</td>
+          <td>5</td>
+          <td>2</td>
+          <td>2 dias 2 horas</td>
+          <td>1 dia 11 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#44</strong></td>
+          <td>Carla Laudares</td>
+          <td>4</td>
+          <td>1</td>
+          <td>N/A</td>
+          <td>62 dias 28 minutos</td>
+        </tr>
+
+        <tr>
+          <td><strong>#45</strong></td>
+          <td>Automação Sistema</td>
+          <td>3</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#46</strong></td>
+          <td>Gilson Junio</td>
+          <td>2</td>
+          <td>2</td>
+          <td>10 segundos</td>
+          <td>67 dias 8 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#47</strong></td>
+          <td>Carlos Fernandes</td>
+          <td>1</td>
+          <td>8</td>
+          <td>1 hora 25 minutos</td>
+          <td>86 dias 5 horas</td>
+        </tr>
+
+        <tr>
+          <td><strong>#48</strong></td>
+          <td>Thais Luciana</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#49</strong></td>
+          <td>Letícia Santos</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#50</strong></td>
+          <td>Ana luiza</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#51</strong></td>
+          <td>Renato Nogueira Barbosa</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#52</strong></td>
+          <td>Nivia Apolinaria</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#53</strong></td>
+          <td>Helton Espinola</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#54</strong></td>
+          <td>Walter Junio</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#55</strong></td>
+          <td>David Stephano</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#56</strong></td>
+          <td>Luciana Santos</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#57</strong></td>
+          <td>Wanderson Silva</td>
+          <td>0</td>
+          <td>0</td>
+          <td>4 minutos 34 segundos</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#58</strong></td>
+          <td>Luana Lucia</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#59</strong></td>
+          <td>Evandro Magno</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#60</strong></td>
+          <td>Dayanne Poliana</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+
+        <tr>
+          <td><strong>#61</strong></td>
+          <td>Jessica Dias</td>
+          <td>0</td>
+          <td>0</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="cruzamento">
+  <div class="section-title"><span>🔗</span> Análise Cruzada — Ads + CRM + Vendas</div>
+
+  <div class="alert">
+    <strong>ℹ️ Nota sobre atribuição:</strong> O CPL Real e o ROAS Estimado abaixo cruzam o gasto em Ads
+    com o volume de conversas do CRM e a receita total (DayUse + Cotas pagas). A atribuição exata exige
+    UTMs configuradas nas landing pages e captura no CRM. Esses valores são estimativas do período.
+  </div>
+
+  <div class="table-card">
+    <div class="table-title">Resumo Cruzado por Mês</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Mês</th>
+          <th>Invest. Total Ads</th>
+          <th>Conversas CRM</th>
+          <th>CPL Real (Ads÷CRM)</th>
+          <th>Receita DayUse</th>
+          <th>Receita Cotas</th>
+          <th>Receita Total</th>
+          <th>ROAS Estimado</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td><strong>Dez/25</strong></td>
+          <td>R$ 47.344,89</td>
+          <td>12.368</td>
+          <td>R$ 3,83</td>
+          <td>R$ 497.000,00</td>
+          <td>R$ 467.862,24</td>
+          <td><strong>R$ 964.862,24</strong></td>
+          <td><span class="badge badge-green">20,38x</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>Jan/26</strong></td>
+          <td>R$ 30.049,24</td>
+          <td>12.484</td>
+          <td>R$ 2,41</td>
+          <td>R$ 470.738,00</td>
+          <td>R$ 180.087,38</td>
+          <td><strong>R$ 650.825,38</strong></td>
+          <td><span class="badge badge-green">21,66x</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>Fev/26</strong></td>
+          <td>R$ 29.148,28</td>
+          <td>8.615</td>
+          <td>R$ 3,38</td>
+          <td>R$ 541.204,00</td>
+          <td>R$ 61.381,92</td>
+          <td><strong>R$ 602.585,92</strong></td>
+          <td><span class="badge badge-green">20,67x</span></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>CPL Real por Mês (R$)</h3>
+      <canvas id="chartCPLReal"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>ROAS Estimado por Mês</h3>
+      <canvas id="chartROASMes"></canvas>
+    </div>
+  </div>
+
+  <div class="alert" style="background:#e8f5e9;border-left-color:#2e7d32;margin-top:20px">
+    <strong>✅ O que falta para análise completa:</strong><br><br>
+    1. <strong>Atribuição de campanha ao lead no CRM</strong> — configurar UTMs nas landing pages e capturar no CRM<br>
+    2. <strong>Registro de valor (R$) das vendas no CRM</strong> — campo financeiro ou integração com sistema de vendas<br>
+    3. <strong>Taxa de conversão da landing page</strong> — Google Analytics / Meta Pixel com evento de lead<br>
+    4. <strong>Google Ads Jan/26 e Fev/26</strong> — exportar relatórios dos meses faltantes
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<footer>
+  Relatório gerado automaticamente por <strong>Aquabeat Ads Report Generator</strong> · {now}<br>
+  Dados: Meta Ads (OFC/ING/INTERNA) · TikTok Ads · Google Ads · Profluxus CRM · Sistema de Vendas
+</footer>
+
+<script>
+const LABELS = ["Dez/25", "Jan/26", "Fev/26"];
+const MONTHS = ["Dez/25", "Jan/26", "Fev/26"];
+
+function mkChart(id, type, datasets, opts) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  return new Chart(ctx, {
+    type: type,
+    data: { labels: LABELS, datasets: datasets },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+      scales: type === 'bar' || type === 'line' ? {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#f0f0f0' }, beginAtZero: true }
+      } : undefined,
+      ...opts
+    }
+  });
+}
+
+// ─── Visão Geral ───────────────────────────────
+mkChart('chartInvPlat', 'bar', [
+  { label: 'Meta Ads', data: [41724.72, 28146.24, 25696.84], backgroundColor: '#1877f2' },
+  { label: 'TikTok Ads', data: [4818.1, 1903.0, 3451.44], backgroundColor: '#444444' },
+  { label: 'Google Ads', data: [802.07, 0.0, 0.0], backgroundColor: '#4285f4' },
+], { plugins: { tooltip: { callbacks: { label: c => 'R$ ' + c.raw.toLocaleString('pt-BR', {minimumFractionDigits:2}) } } } });
+
+mkChart('chartROAS', 'bar', [
+  { label: 'Investimento Ads', data: [47344.89, 30049.24, 29148.28], backgroundColor: '#0097a7', yAxisID: 'y' },
+  { label: 'Receita Total', data: [964862.24, 650825.38, 602585.92], backgroundColor: '#00897b', yAxisID: 'y' },
+]);
+
+mkChart('chartLeads', 'bar', [
+  { label: 'Leads Meta', data: [2814.0, 2003.0, 2098.0], backgroundColor: '#1877f2' },
+  { label: 'Leads TikTok', data: [10027.0, 5728.0, 10605.0], backgroundColor: '#444444' },
+]);
+
+mkChart('chartCRM', 'bar', [
+  { label: 'Conversas CRM', data: [12368.0, 12484.0, 8615.0], backgroundColor: '#f57c00' },
+]);
+
+mkChart('chartReceita', 'bar', [
+  { label: 'DayUse', data: [497000.0, 470738.0, 541204.0], backgroundColor: '#00897b' },
+  { label: 'Cotas (pago)', data: [467862.24, 180087.38, 61381.92], backgroundColor: '#7b1fa2' },
+]);
+
+// ─── Meta Ads ───────────────────────────────────
+mkChart('chartMetaInv', 'bar', [
+  { label: 'Investimento Meta (R$)', data: [41724.72, 28146.24, 25696.84], backgroundColor: '#1877f2' },
+]);
+mkChart('chartMetaCPL', 'line', [
+  { label: 'CPL Meta (R$)', data: [14.83, 14.05, 12.25], borderColor: '#1877f2', tension:.3, fill:false },
+  { label: 'CPL TikTok (R$)', data: [0.48, 0.33, 0.33], borderColor: '#444444', tension:.3, fill:false },
+]);
+
+// ─── TikTok ─────────────────────────────────────
+mkChart('chartTikInv', 'bar', [
+  { label: 'Investimento TikTok (R$)', data: [4818.1, 1903.0, 3451.44], backgroundColor: '#444444' },
+]);
+mkChart('chartTikRes', 'bar', [
+  { label: 'Resultados TikTok', data: [10027.0, 5728.0, 10605.0], backgroundColor: '#757575' },
+]);
+
+// ─── DayUse ─────────────────────────────────────
+mkChart('chartDayInv', 'bar', [
+  { label: 'Receita DayUse (R$)', data: [497000.0, 470738.0, 541204.0], backgroundColor: '#00897b' },
+]);
+mkChart('chartDayIng', 'bar', [
+  { label: 'Ingressos Vendidos', data: [3998.0, 4763.0, 6719.0], backgroundColor: '#26a69a' },
+]);
+
+// ─── Cotas ──────────────────────────────────────
+mkChart('chartCotaPlano', 'bar', [
+  { label: 'Valor Total Planos (R$)', data: [6524040.2, 4496415.12, 2706025.08], backgroundColor: '#7b1fa2' },
+  { label: 'Total Pago (R$)', data: [467862.24, 180087.38, 61381.92], backgroundColor: '#ba68c8' },
+]);
+mkChart('chartCotaVendas', 'bar', [
+  { label: 'Títulos Vendidos', data: [1057.0, 585.0, 380.0], backgroundColor: '#ab47bc' },
+]);
+
+mkChart('chartCotaOrigem', 'doughnut', [
+  { data: [380], backgroundColor: ['#1877f2','#00897b','#f57c00','#7b1fa2','#d32f2f','#0097a7'] }
+], {
+  plugins: {
+    legend: { position: 'right' },
+    tooltip: { callbacks: { label: c => c.label + ': ' + c.raw } }
+  },
+  labels: ["Loja"]
+});
+
+// Override chart origem labels
+const cotaOrigemChart = Chart.getChart('chartCotaOrigem');
+
+mkChart('chartCotaProd', 'doughnut', [
+  { data: [380], backgroundColor: ['#1877f2','#00897b','#f57c00','#7b1fa2','#d32f2f','#0097a7','#ffa000','#78909c'] }
+], {
+  plugins: {
+    legend: { position: 'right' },
+    tooltip: { callbacks: { label: c => c.raw + ' títulos' } }
+  },
+  labels: ["S\u00f3cio Safira T\u00edtulo"]
+});
+
+// ─── Agentes ────────────────────────────────────
+mkChart('chartAgConv', 'bar', [
+  { label: 'Conversas Atribuídas', data: [12368.0, 12484.0, 8615.0], backgroundColor: '#f57c00' },
+]);
+mkChart('chartAgRes', 'bar', [
+  { label: 'Resoluções', data: [1707.0, 3177.0, 1173.0], backgroundColor: '#ef6c00' },
+]);
+
+// ─── Cruzamento ──────────────────────────────────
+mkChart('chartCPLReal', 'line', [
+  { label: 'CPL Real (R$)', data: [3.83, 2.41, 3.38], borderColor: '#d32f2f', backgroundColor:'rgba(211,47,47,.1)', tension:.3, fill:true },
+]);
+mkChart('chartROASMes', 'bar', [
+  { label: 'ROAS Estimado (x)', data: [20.38, 21.66, 20.67], backgroundColor: ctx => {
+    const v = ctx.dataset.data[ctx.dataIndex];
+    return v >= 3 ? '#2e7d32' : v >= 1 ? '#ffa000' : '#d32f2f';
+  } },
+]);
+
+// Fix doughnut labels
+document.querySelectorAll('canvas').forEach(c => {
+  const chart = Chart.getChart(c);
+  if (chart && chart.config.type === 'doughnut' && chart.config.options?.labels) {
+    chart.data.labels = chart.config.options.labels;
+    chart.update();
+  }
+});
+</script>
+</body>
+</html>
